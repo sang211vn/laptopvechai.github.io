@@ -1,0 +1,9 @@
+{
+  "version": "4.2",
+  "image_priority": [
+    "Ảnh chụp thực tế của từng máy/linh kiện",
+    "Ảnh thật trong Thư viện theo Hãng + Model",
+    "Chưa có ảnh thật"
+  ],
+  "no_generated_images": true
+}

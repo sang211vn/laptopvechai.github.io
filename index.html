@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<script>
+(function(){
+  if (location.protocol === "file:") {
+    window.addEventListener("DOMContentLoaded", function(){
+      var box=document.createElement("div");
+      box.style.cssText="position:fixed;inset:0;background:#020817;color:#fff;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;padding:24px;box-sizing:border-box";
+      box.innerHTML='<div style="max-width:620px;width:100%;background:#0b1730;border:1px solid #1677ff;border-radius:18px;padding:28px;box-shadow:0 0 40px rgba(0,110,255,.25);text-align:center">'+
+        '<h2 style="margin:0 0 12px">⚠️ Hãy chạy CHAY_LAN.bat</h2>'+
+        '<p style="color:#b8c7e6;line-height:1.6">Bạn đang mở <b>index.html</b> trực tiếp bằng file:/// nên API đăng nhập không chạy. Hãy đóng cửa sổ này và chạy <b>CHAY_LAN.bat</b> trong thư mục phần mềm.</p>'+
+        '<p style="color:#65b8ff">Sau đó trình duyệt sẽ mở http://127.0.0.1:8000 và bạn đăng nhập bình thường.</p>'+
+        '</div>';
+      document.body.appendChild(box);
+    });
+  }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAPTOP VE CHAI .COM</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" href="assets/robot_logo.png">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand cyberBrand"><img src="assets/robot_logo.png" alt="Logo robot LAPTOP VE CHAI"><span class="brandText"><b>LAPTOP VE CHAI</b><small>.COM</small></span></div>
+  <nav>
+    <button class="nav active" data-page="dashboard">🏠 Trang chủ</button>
+    <button class="nav" data-page="import">📥 Nhập kho</button>
+    <button class="nav" data-page="parts">🔧 Nhập linh kiện</button>
+    <button class="nav" data-page="stock">📦 Kho hàng</button>
+    <button class="nav" data-page="sales">🛒 Bán laptop</button>
+    <button class="nav" data-page="partSales">🔩 Bán linh kiện</button>
+    <button class="nav" data-page="repairs">🛠️ Sửa chữa</button>
+    <button class="nav" data-page="liquidation">♻️ Thanh lý</button>
+    <button class="nav" data-page="history">📜 Lịch sử giao dịch</button>
+    <button class="nav" data-page="statistics">📊 Thống kê</button>
+    <button class="nav" data-page="settings">⚙️ Cài đặt</button>
+  </nav>
+  <div class="side-note">Dữ liệu lưu trên máy<br>trình duyệt hiện tại</div>
+</aside>
+<main>
+<header><div><b id="pageTitle">Tổng quan</b><span id="pageSub">Quản lý cửa hàng laptop</span></div><div class="cyberTopRight"><span class="cyberBell">♢</span><button class="cyberTopBtn" data-top-settings="settings">⚙</button><div class="cyberUser"><span>AI</span><b>Hỏi AI</b><small>Admin</small></div><div class="clock" id="clock"></div></div></header>
+<section id="content"></section>
+</main>
+</div>
+<!-- Các root phải có sẵn trước khi app.js chạy -->
+<div id="modalRoot"></div>
+<div id="authRoot"></div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="js/app.js?v=79"></script>
+</body>
+</html>
