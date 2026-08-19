@@ -38,3 +38,10 @@ Upload toàn bộ **nội dung bên trong thư mục này** vào repository GitH
 - `server_lan.py` — server LAN
 - `CHAY_LAN.bat` — chạy bản local
 - `CHAY_SERVER_ONLINE.bat` — chạy server theo cấu hình hiện có
+
+
+## V4.82 FIX
+- In Bill/Báo phiếu hiển thị ngay trên cửa sổ hiện tại, không mở `about:blank`.
+- Bấm IN PHIẾU sẽ render bill trước rồi mở hộp thoại in.
+- Xóa/chuyển Kho/Thanh lý cập nhật giao diện ngay, không chờ server.
+- Lưu dữ liệu chạy nền sau khi giao diện đã cập nhật.

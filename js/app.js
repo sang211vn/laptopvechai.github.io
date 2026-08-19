@@ -1382,7 +1382,9 @@ async function deleteSelectedStock(type){
   const idSet=new Set(ids);
   for(const record of selected) pushTrash(type==='laptop'?'stockLaptop':'stockPart',record);
   for(let i=list.length-1;i>=0;i--) if(idSet.has(String(list[i].id))) list.splice(i,1);
-  await save(); await loadSharedDB(); stockPage();
+  // Render trước, lưu nền sau.
+  stockPage();
+  save();
 }
 
 async function moveStockToLiquidation(type,id){
@@ -1393,8 +1395,11 @@ async function moveStockToLiquidation(type,id){
   db.liquidationStock=db.liquidationStock||[];
   db.liquidationStock.push({id:Date.now()+Math.floor(Math.random()*1000),sourceType:type,sourceId:x.id,record:JSON.parse(JSON.stringify(x)),movedAt:new Date().toLocaleString('vi-VN')});
   if(type==='laptop')db.laptops=db.laptops.filter(a=>a.id!=id); else db.parts=db.parts.filter(a=>a.id!=id);
-  await save(); await loadSharedDB(); stockPage();
+  // Render ngay tại trang hiện tại.
+  stockPage();
+  save();
 }
+
 async function returnLiquidationToStock(id){
   if(!canManageAccounts())return alert('Chỉ Quản trị viên mới được đưa hàng về Kho.');
   const arr=db.liquidationStock||[]; const idx=arr.findIndex(a=>a.id==id); if(idx<0)return; const item=arr[idx]; const x=item.record; const list=item.sourceType==='laptop'?db.laptops:db.parts;
@@ -1403,9 +1408,12 @@ async function returnLiquidationToStock(id){
 }
 async function deleteLiquidationStock(id){
   if(!canManageAccounts())return alert('Chỉ Quản trị viên mới được xóa.');
-  const arr=db.liquidationStock||[]; const idx=arr.findIndex(a=>a.id==id); if(idx<0)return; const item=arr[idx]; const x=item.record;
+  const arr=db.liquidationStock||[]; const idx=arr.findIndex(a=>a.id==id); if(idx<0)return;
+  const item=arr[idx]; const x=item.record;
   if(!confirm(`Xóa vĩnh viễn "${x.brand||x.type||''} ${x.model||''}" khỏi Thanh lý?`))return;
-  arr.splice(idx,1); db.liquidationStock=arr; await save(); await loadSharedDB(); liquidationPage();
+  arr.splice(idx,1); db.liquidationStock=arr;
+  liquidationPage();
+  save();
 }
 
 function stockPage(){
@@ -1652,11 +1660,29 @@ async function saveLaptopEdit(id){
   x.repair=x.keyboard+x.screen+x.ram+x.ssd+x.other;x.cost=x.price+x.repair;
   await save();await loadSharedDB();closeStockModal();stockPage();
 }
-async function deleteLaptop(id){if(!canManageAccounts())return alert("Chỉ Quản trị viên mới được xóa laptop.");const x=db.laptops.find(a=>a.id==id);if(!x)return;if(!confirm("Chuyển laptop này vào Thùng rác?"))return;db.laptops=db.laptops.filter(a=>a.id!=id);pushTrash("stockLaptop",x);await save();await loadSharedDB();stockPage()}
+async function deleteLaptop(id){
+  if(!canManageAccounts())return alert("Chỉ Quản trị viên mới được xóa laptop.");
+  const x=db.laptops.find(a=>a.id==id);if(!x)return;
+  if(!confirm("Chuyển laptop này vào Thùng rác?"))return;
+  db.laptops=db.laptops.filter(a=>a.id!=id);
+  pushTrash("stockLaptop",x);
+  stockPage();
+  save();
+}
+
 function viewPart(id){const x=db.parts.find(a=>a.id==id);if(!x)return;showStockModal(`<h2>🔧 ${x.type}</h2><div class="detailGrid"><div><img class="detailImage" src="${x.modelImage||''}" onerror="this.style.display='none'"/><p class="muted">Ảnh linh kiện</p></div><div><img class="detailImage" src="${x.actualImage||''}" onerror="this.style.display='none'"/><p class="muted">Ảnh thực tế</p></div></div><div class="detailInfo"><b>Loại:</b> ${x.type}<br><b>Hãng:</b> ${x.brand}<br><b>Model:</b> ${x.model}<br><b>Số lượng còn:</b> ${x.qty}<br><b>Giá nhập:</b> ${money(x.price)}<br><b>Ghi chú:</b> ${x.note||''}</div><div class="actions"><button class="btn orange" onclick="closeStockModal();editPart(${x.id})">✏️ SỬA THÔNG TIN</button><button class="btn red" onclick="closeStockModal();deletePart(${x.id})">🗑️ XÓA</button></div>`)}
 function editPart(id){const x=db.parts.find(a=>a.id==id);if(!x)return;showStockModal(`<h2>✏️ Sửa linh kiện</h2><div class="formgrid"><div class="field"><label>Loại</label><input id="editPartType" value="${x.type}"></div><div class="field"><label>Hãng</label><input id="editPartBrand" value="${x.brand}"></div><div class="field"><label>Model</label><input id="editPartModel" value="${x.model}"></div><div class="field"><label>Số lượng</label><input id="editPartQty" type="number" min="0" value="${x.qty}"></div><div class="field"><label>Giá nhập</label><input id="editPartPrice" type="text" inputmode="numeric" value="${new Intl.NumberFormat("vi-VN").format(Number(x.price||0))}"></div><div class="field full"><label>Ghi chú</label><input id="editPartNote" value="${x.note||''}"></div></div><div class="actions"><button class="btn green" onclick="savePartEdit(${x.id})">💾 LƯU THAY ĐỔI</button><button class="btn gray" onclick="closeStockModal()">HỦY</button></div>`)}
 async function savePartEdit(id){const x=db.parts.find(a=>a.id==id);if(!x)return;x.type=$("#editPartType").value.trim();x.brand=$("#editPartBrand").value.trim();x.model=$("#editPartModel").value.trim();x.qty=parseMoneyValue($("#editPartQty").value||0);x.price=parseMoneyValue($("#editPartPrice").value||0);x.note=$("#editPartNote").value;await save();await loadSharedDB();closeStockModal();stockPage()}
-async function deletePart(id){if(!canManageAccounts())return alert("Chỉ Quản trị viên mới được xóa linh kiện.");const x=db.parts.find(a=>a.id==id);if(!x)return;if(!confirm("Chuyển linh kiện này vào Thùng rác?"))return;db.parts=db.parts.filter(a=>a.id!=id);pushTrash("stockPart",x);await save();await loadSharedDB();stockPage()}
+async function deletePart(id){
+  if(!canManageAccounts())return alert("Chỉ Quản trị viên mới được xóa linh kiện.");
+  const x=db.parts.find(a=>a.id==id);if(!x)return;
+  if(!confirm("Chuyển linh kiện này vào Thùng rác?"))return;
+  db.parts=db.parts.filter(a=>a.id!=id);
+  pushTrash("stockPart",x);
+  stockPage();
+  save();
+}
+
 function salesPage(){
   const available=db.laptops.filter(x=>x.qty>0);
   const rows=db.sales.slice().reverse().slice(0,30).map(x=>`
@@ -1830,60 +1856,80 @@ window.printSale=function(id,targetWin=null){
 
 
 function openPrintWindow(html, targetWin=null){
-  // V4.75: Không mở popup about:blank nữa.
-  // Cốc Cốc có thể tạo cửa sổ popup trắng khi document.write/data URL được
-  // thực hiện trong cửa sổ mới. Thay vào đó, dùng iframe ẩn ngay trong trang
-  // hiện tại rồi gọi print() trên iframe. Cách này ổn định hơn và không làm
-  // mất dữ liệu của màn hình bán hàng.
+  // V4.82: In bill NGAY TRÊN TRANG HIỆN TẠI.
+  // Không dùng popup / about:blank / iframe ẩn vì Cốc Cốc có thể mở cửa sổ trắng.
+  // Bill được render trước, sau đó gọi print() trên chính cửa sổ hiện tại.
   try{
-    const oldFrame=document.getElementById("__lv_print_frame");
-    if(oldFrame) oldFrame.remove();
+    const oldLayer=document.getElementById("__lv_print_layer");
+    if(oldLayer) oldLayer.remove();
+    const oldStyle=document.getElementById("__lv_print_style");
+    if(oldStyle) oldStyle.remove();
 
-    const frame=document.createElement("iframe");
-    frame.id="__lv_print_frame";
-    frame.setAttribute("aria-hidden","true");
-    frame.style.position="fixed";
-    frame.style.width="1px";
-    frame.style.height="1px";
-    frame.style.right="0";
-    frame.style.bottom="0";
-    frame.style.border="0";
-    frame.style.opacity="0";
-    frame.style.pointerEvents="none";
-    frame.style.zIndex="-1";
-    document.body.appendChild(frame);
+    const parser=new DOMParser();
+    const parsed=parser.parseFromString(String(html||""),"text/html");
+    const layer=document.createElement("div");
+    layer.id="__lv_print_layer";
+    layer.innerHTML=parsed.body ? parsed.body.innerHTML : String(html||"");
 
-    const doc=frame.contentDocument || frame.contentWindow.document;
-    doc.open();
-    doc.write(html);
-    doc.close();
+    const style=document.createElement("style");
+    style.id="__lv_print_style";
+    const sourceStyles=[...parsed.querySelectorAll("style")].map(s=>s.textContent||"").join("\n");
+    style.textContent=`
+      #__lv_print_layer{
+        position:fixed;inset:0;z-index:2147483647;
+        overflow:auto;background:#fff;color:#111;
+        padding:20px;
+      }
+      #__lv_print_layer .receipt{margin:0 auto;max-width:850px}
+      #__lv_print_layer .no-print{display:block}
+      #__lv_print_layer img{max-width:100%}
+      #__lv_print_layer button{cursor:pointer}
+      @media print{
+        body > *:not(#__lv_print_layer){display:none!important}
+        #__lv_print_layer{
+          position:static!important;display:block!important;
+          width:auto!important;height:auto!important;
+          min-height:0!important;overflow:visible!important;
+          padding:8px!important;margin:0!important;
+          background:#fff!important;color:#111!important;
+        }
+        #__lv_print_layer .no-print{display:none!important}
+      }
+      ${sourceStyles}
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(layer);
 
-    const cleanup=()=>{
-      setTimeout(()=>{
-        try{ frame.remove(); }catch(e){}
-      }, 1500);
-    };
-
+    // Đã render bill thì cho trình duyệt paint trước khi mở hộp thoại in.
     const doPrint=()=>{
       try{
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
+        window.focus();
+        window.print();
       }catch(e){
-        // Fallback cuối cùng: in trang hiện tại nếu trình duyệt chặn iframe print.
-        try{ window.print(); }catch(err){}
+        console.warn("Print failed",e);
       }
-      cleanup();
     };
 
-    // Chờ DOM + hình ảnh trong bill tải xong rồi mới gọi in.
-    if(frame.contentWindow){
-      frame.onload=()=>setTimeout(doPrint,250);
-    }
-    setTimeout(doPrint,900);
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        setTimeout(doPrint,120);
+      });
+    });
 
-    return frame.contentWindow;
+    // Sau khi đóng hộp thoại in, trả giao diện về trạng thái bình thường.
+    const cleanup=()=>{
+      setTimeout(()=>{
+        try{document.getElementById("__lv_print_layer")?.remove();}catch(e){}
+        try{document.getElementById("__lv_print_style")?.remove();}catch(e){}
+        window.removeEventListener("afterprint",cleanup);
+      },100);
+    };
+    window.addEventListener("afterprint",cleanup,{once:true});
+
+    return window;
   }catch(e){
-    alert("Không thể mở phiếu in. Hãy thử lại.");
+    console.error("openPrintWindow:",e);
+    alert("Không thể tạo phiếu in. Hãy thử lại.");
     return null;
   }
 }
